@@ -1,0 +1,30 @@
+import numpy as np
+import cv2
+img = cv2.imread("G:\PYTHON\Exercises\Duct\images\Dirtdetect\cleanduct\duct8.jpg")
+img = cv2.resize(img,(300,300))
+img1 = cv2.resize(img,(300,300))
+w = np.array([[[ 0.114, 0.587,  0.299]]])
+img = cv2.convertScaleAbs(np.sum(img*w, axis=2))
+img = cv2.equalizeHist(img)
+edges = cv2.Canny(img,0,256)
+cv2.imshow('edges',edges)
+cv2.waitKey(0)
+blur = cv2.GaussianBlur(img,(3,3),0)
+kernel = np.array([[1/273,4/273,7/273,4/273,1/273],[4/273,16/273,26/273,16/273,4/273],
+                     [7/273,26/273,41/273,26/273,7/273],[4/273,16/273,26/273,16/273,4/273],
+                     [1/273,4/273,7/273,4/273,1/273]])
+print('Ker',kernel)
+pro_img = cv2.filter2D(blur, -1, kernel)
+img_adap_thresh = cv2.adaptiveThreshold(pro_img,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,\
+            cv2.THRESH_BINARY,21,2)
+laplacian = cv2.Laplacian(img_adap_thresh,cv2.CV_8U)
+lines = cv2.HoughLinesP(laplacian,1,np.pi/180,100,1000,25)
+print(len(lines))
+i=0
+for i in range(len(lines)):
+    for x1,y1,x2,y2 in lines[i]:
+        cv2.line(img,(x1,y1),(x2,y2),(255,255,255),2)
+        i=i+1
+
+cv2.imshow('houghlines',img)
+cv2.waitKey(0)
